@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Edukasi Tata Nama Hidrokarbon</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: url('https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+            background-size: cover;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .game-area {
+            text-align: center;
+        }
+
+        .structure {
+            font-size: 24px;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .answer-form {
+            margin: 20px 0;
+        }
+
+        input[type="text"] {
+            padding: 12px;
+            width: 80%;
+            max-width: 400px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .feedback {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .incorrect {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .score-timer {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .score, .timer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .level-info {
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: #4CAF50;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 10px;
+                padding: 15px;
+            }
+            
+            input[type="text"] {
+                width: 90%;
+            }
+            
+            .structure {
+                font-size: 18px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Edukasi Tata Nama Hidrokarbon</h1>
+        
+        <div class="score-timer">
+            <div class="score">Skor: <span id="score">0</span></div>
+            <div class="level-info">Level: <span id="level">1</span> - <span id="level-name">Alkana Rantai Lurus</span></div>
+            <div class="timer">Waktu: <span id="time">60</span>s</div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        
+        <div class="game-area">
+            <div class="structure" id="structure"></div>
+            
+            <div class="answer-form">
+                <input type="text" id="answer-input" placeholder="Masukkan nama IUPAC senyawa...">
+                <button id="submit-btn">Submit</button>
+                <button id="next-btn" style="display: none;">Soal Berikutnya</button>
+            </div>
+            
+            <div class="feedback" id="feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        // Data soal berdasarkan level
+        const questionsByLevel = {
+            1: [ // Alkana rantai lurus
+                { structure: "CH4", answer: "metana" },
+                { structure: "CH3-CH3", answer: "etana" },
+                { structure: "CH3-CH2-CH3", answer: "propana" },
+                { structure: "CH3-CH2-CH2-CH3", answer: "butana" },
+                { structure: "CH3-CH2-CH2-CH2-CH3", answer: "pentana" }
+            ],
+            2: [ // Alkena rantai lurus
+                { structure: "CH2=CH2", answer: "etena" },
+                { structure: "CH2=CH-CH3", answer: "propena" },
+                { structure: "CH2=CH-CH2-CH3", answer: "1-butena" },
+                { structure: "CH3-CH=CH-CH3", answer: "2-butena" },
+                { structure: "CH2=CH-CH2-CH2-CH3", answer: "1-pentena" }
+            ],
+            3: [ // Alkuna rantai lurus
+                { structure: "CH≡CH", answer: "etuna" },
+                { structure: "CH≡C-CH3", answer: "propuna" },
+                { structure: "CH≡C-CH2-CH3", answer: "1-butuna" },
+                { structure: "CH3-C≡C-CH3", answer: "2-butuna" },
+                { structure: "CH≡C-CH2-CH2-CH3", answer: "1-pentuna" }
+            ],
+            4: [ // Alkana bercabang
+                { structure: "CH3-CH(CH3)-CH3", answer: "2-metilpropana" },
+                { structure: "CH3-CH2-CH(CH3)-CH3", answer: "2-metilbutana" },
+                { structure: "CH3-C(CH3)2-CH3", answer: "2,2-dimetilpropana" },
+                { structure: "CH3-CH2-CH(CH3)-CH2-CH3", answer: "3-metilpentana" },
+                { structure: "CH3-CH2-C(CH3)(CH3)-CH3", answer: "2,2-dimetilbutana" }
+            ],
+            5: [ // Alkena dan alkuna bercabang
+                { structure: "CH2=C(CH3)-CH3", answer: "2-metilpropena" },
+                { structure: "CH3-CH=C(CH3)-CH3", answer: "2-metil-2-butena" },
+                { structure: "CH≡C-CH(CH3)-CH3", answer: "3-metil-1-butuna" },
+                { structure: "CH2=CH-CH(CH3)-CH2-CH3", answer: "3-metil-1-pentena" },
+                { structure: "CH3-C≡C-CH(CH3)-CH3", answer: "4-metil-2-pentuna" }
+            ]
+        };
+
+        const levelNames = {
+            1: "Alkana Rantai Lurus",
+            2: "Alkena Rantai Lurus",
+            3: "Alkuna Rantai Lurus",
+            4: "Alkana Bercabang",
+            5: "Alkena/Alkuna Bercabang"
+        };
+
+        // Variabel game state
+        let currentLevel = 1;
+        let score = 0;
+        let currentQuestionIndex = 0;
+        let timer;
+        let timeLeft = 60;
+        let questions = [...questionsByLevel[1]];
+        let answeredCorrectly = false;
+
+        // Elemen DOM
+        const structureEl = document.getElementById('structure');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const feedbackEl = document.getElementById('feedback');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const levelNameEl = document.getElementById('level-name');
+        const timeEl = document.getElementById('time');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Fungsi untuk memulai game
+        function startGame() {
+            score = 0;
+            currentLevel = 1;
+            updateScore();
+            loadLevel(currentLevel);
+            startTimer();
+        }
+
+        // Fungsi untuk memuat level
+        function loadLevel(level) {
+            currentLevel = level;
+            questions = [...questionsByLevel[level]];
+            currentQuestionIndex = 0;
+            answeredCorrectly = false;
+            
+            levelEl.textContent = level;
+            levelNameEl.textContent = levelNames[level];
+            
+            showQuestion();
+        }
+
+        // Fungsi untuk menampilkan pertanyaan
+        function showQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                // Level selesai, naik level
+                if (currentLevel < Object.keys(questionsByLevel).length) {
+                    currentLevel++;
+                    loadLevel(currentLevel);
+                } else {
+                    // Game selesai
+                    endGame();
+                }
+                return;
+            }
+            
+            const question = questions[currentQuestionIndex];
+            structureEl.textContent = question.structure;
+            answerInput.value = '';
+            answerInput.focus();
+            feedbackEl.style.display = 'none';
+            nextBtn.style.display = 'none';
+            submitBtn.style.display = 'inline-block';
+            
+            // Update progress bar
+            const progress = (currentQuestionIndex / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        // Fungsi untuk memeriksa jawaban
+        function checkAnswer() {
+            const userAnswer = answerInput.value.trim().toLowerCase().replace(/\s+/g, ' ');
+            const correctAnswer = questions[currentQuestionIndex].answer.toLowerCase();
+            
+            // Case-insensitive comparison and ignore extra spaces
+            if (userAnswer === correctAnswer) {
+                feedbackEl.textContent = "Benar! 🎉";
+                feedbackEl.className = "feedback correct";
+                score += 10;
+                updateScore();
+                answeredCorrectly = true;
+                
+                // Cek apakah sudah mencapai skor untuk naik level
+                if (score >= currentLevel * 30 && currentLevel < Object.keys(questionsByLevel).length) {
+                    feedbackEl.textContent += ` Selamat! Anda naik ke level ${currentLevel + 1}!`;
+                }
+            } else {
+                feedbackEl.textContent = `Salah! 😞 Jawaban yang benar: ${questions[currentQuestionIndex].answer}`;
+                feedbackEl.className = "feedback incorrect";
+                answeredCorrectly = false;
+            }
+            
+            feedbackEl.style.display = 'block';
+            submitBtn.style.display = 'none';
+            nextBtn.style.display = 'inline-block';
+        }
+
+        // Fungsi untuk pertanyaan berikutnya
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            // Naik level jika sudah menjawab semua soal dengan benar
+            if (currentQuestionIndex >= questions.length && answeredCorrectly && score >= currentLevel * 30) {
+                if (currentLevel < Object.keys(questionsByLevel).length) {
+                    currentLevel++;
+                    loadLevel(currentLevel);
+                    return;
+                }
+            }
+            
+            showQuestion();
+        }
+
+        // Fungsi untuk mengupdate skor
+        function updateScore() {
+            scoreEl.textContent = score;
+        }
+
+        // Fungsi timer
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 60;
+            updateTimerDisplay();
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                updateTimerDisplay();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            timeEl.textContent = timeLeft;
+        }
+
+        // Fungsi akhir game
+        function endGame() {
+            clearInterval(timer);
+            structureEl.textContent = "Permainan Selesai!";
+            answerInput.style.display = 'none';
+            submitBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+            feedbackEl.textContent = `Skor akhir Anda: ${score}`;
+            feedbackEl.className = "feedback correct";
+            feedbackEl.style.display = 'block';
+        }
+
+        // Event listeners
+        submitBtn.addEventListener('click', checkAnswer);
+        nextBtn.addEventListener('click', nextQuestion);
+        answerInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                if (submitBtn.style.display !== 'none') {
+                    checkAnswer();
+                } else {
+                    nextQuestion();
+                }
+            }
+        });
+
+        // Mulai game
+        startGame();
+    </script>
+</body>
+</html>
